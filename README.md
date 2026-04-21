@@ -1,51 +1,83 @@
 # Offline Image Maker
 
-A fully offline Django web app for generating images from short prompts or longer scene scripts using a local Stable Diffusion model.
+A Django web app that generates images from text. It has two modes:
 
-## Offline Setup
+- **Type to Image**: write a short prompt and generate an image.
+- **Script to Image**: paste a longer scene/script, convert it into a final prompt, then generate an image.
 
-1. Create and activate a virtual environment.
-2. Install packages from `requirements.txt`.
-3. Download the Stable Diffusion v1.5 model once:
+The project is designed for **fully offline runtime generation**. No OpenAI API,
+Stability API, Replicate API, hosted Hugging Face inference API, or cloud service
+is used for image generation.
+
+## Quick Start After Cloning
+
+Open PowerShell in the project folder and run:
+
+```powershell
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver
+```
+
+Open:
+
+```text
+http://127.0.0.1:8000/
+```
+
+If the page opens, the Django app is working.
+
+## Important: Two Ways To Run
+
+### Option A: Demo Mode Without Stable Diffusion Model
+
+Use this if you only want to test the UI quickly and avoid downloading a large
+model.
+
+```powershell
+$env:OFFLINE_IMAGE_BACKEND="local_pillow"
+python manage.py runserver
+```
+
+This saves and displays images, but they are **not real AI Stable Diffusion
+images**. It is only a local offline preview/demo renderer.
+
+### Option B: Real Offline Stable Diffusion Mode
+
+Use this for real AI image generation.
+
+Step 1: Download the model once. This step needs internet only once:
 
 ```powershell
 python scripts/download_model.py
 ```
 
-4. Set the local model path:
+Step 2: Check that the model folder is valid:
 
 ```powershell
-$env:OFFLINE_IMAGE_MODEL_PATH="C:\models\stable-diffusion"
+python manage.py check_local_model
 ```
 
-5. Run migrations and start Django:
+Expected success:
+
+```text
+Model folder is valid.
+```
+
+Step 3: Run real offline generation:
 
 ```powershell
-python manage.py makemigrations
-python manage.py migrate
+$env:OFFLINE_IMAGE_BACKEND="stable_diffusion"
 python manage.py runserver
 ```
 
-6. Open `http://127.0.0.1:8000/`.
+After the model is downloaded, generation runs from local files only.
 
-The app does not use OpenAI, Stability, Replicate, Hugging Face hosted inference, or any cloud API. `diffusers` is configured with `local_files_only=True`, so runtime Stable Diffusion generation expects all model files to already exist locally.
+## Local Model Folder
 
-## Local Model Setup
-
-This project needs a Stable Diffusion model that is already saved on your
-computer in Diffusers format. The app does not download the model at runtime and
-does not call any API.
-
-The included download script uses:
-
-```text
-runwayml/stable-diffusion-v1-5
-```
-
-This model gives better and more realistic results than tiny demo models. It is
-larger, so the first download can take time and needs enough disk space.
-
-Place the model folder here:
+The model should be stored here:
 
 ```text
 C:\Users\HOTSPOT\OneDrive\Desktop\projectAI\local_models\stable-diffusion
@@ -61,86 +93,115 @@ stable-diffusion/
   tokenizer/
   text_encoder/
   scheduler/
-  safety_checker/        optional depending on model
-  feature_extractor/     optional depending on model
 ```
 
-What the required files mean:
+The included script downloads:
 
-- `model_index.json` tells Diffusers which pipeline components are inside the folder.
-- `unet/` is the main denoising network that creates the image structure.
-- `vae/` converts the model's hidden latent result into a normal image.
-- `tokenizer/` breaks your prompt text into tokens.
-- `text_encoder/` converts those tokens into numbers the model can understand.
+```text
+runwayml/stable-diffusion-v1-5
+```
 
-The validation helper in `generator/services/image_generator.py` checks these
-entries before generation. If something is missing, the UI shows a clear setup
-error instead of a confusing model loading failure.
+This gives better results than tiny demo models, but it is large and can take
+time to download.
 
-## How To Test Model Setup
+## Useful Test Prompt
 
-Run this command before using Type to Image or Script to Image:
+Try this in **Type to Image**:
+
+```text
+A realistic photo of a small modern house beside a river, golden hour sunlight, natural colors, DSLR photography, high detail, sharp focus
+```
+
+Recommended settings:
+
+```text
+Style: Photorealistic
+Width: 512
+Height: 512
+Inference steps: 30
+Guidance scale: 7.5
+```
+
+## Common Problems
+
+### Problem: Local model folder not found
+
+Run:
+
+```powershell
+python scripts/download_model.py
+python manage.py check_local_model
+```
+
+### Problem: Model folder is incomplete
+
+Run the download script again. It supports resume:
+
+```powershell
+python scripts/download_model.py
+```
+
+### Problem: App opens but image looks like a placeholder
+
+You are probably using demo mode:
+
+```powershell
+$env:OFFLINE_IMAGE_BACKEND="local_pillow"
+```
+
+For real AI output, use:
+
+```powershell
+$env:OFFLINE_IMAGE_BACKEND="stable_diffusion"
+```
+
+### Problem: Generation is very slow
+
+CPU generation is slow. A GPU with CUDA is much faster. The app automatically
+uses CUDA if `torch.cuda.is_available()` returns true.
+
+## How The Offline System Works
+
+The app loads a Diffusers Stable Diffusion model from the local folder set in
+Django settings:
+
+```python
+OFFLINE_IMAGE_MODEL_PATH
+```
+
+The generator uses:
+
+```python
+local_files_only=True
+```
+
+That means Diffusers cannot download missing files during generation. Everything
+must already exist on your computer.
+
+## Model Check Command
+
+Run:
 
 ```powershell
 python manage.py check_local_model
 ```
 
-This command is fully offline. It does not load the full model and does not
-download anything. It only checks the folder path from Django settings and prints
-which required entries are present or missing.
-
-Expected success message:
+It checks whether these required files/folders exist:
 
 ```text
-Model folder is valid.
-You can run: python manage.py runserver
+model_index.json
+unet/
+vae/
+tokenizer/
+text_encoder/
+scheduler/
 ```
 
-If the model is missing, the command shows the configured path and the missing
-entries, such as `model_index.json`, `unet`, `vae`, `tokenizer`, or
-`text_encoder`.
-
-## Backend Modes
-
-By default, `OFFLINE_IMAGE_BACKEND=stable_diffusion` so the app does not show a
-placeholder/demo image when you expect real AI output.
-
-For real Stable Diffusion output, set both variables before running the server:
-
-```powershell
-$env:OFFLINE_IMAGE_MODEL_PATH="C:\models\stable-diffusion"
-$env:OFFLINE_IMAGE_BACKEND="stable_diffusion"
-python manage.py runserver
-```
-
-For strict Stable Diffusion only:
-
-```powershell
-$env:OFFLINE_IMAGE_BACKEND="stable_diffusion"
-```
-
-## Viva-Friendly Explanation
-
-Offline Image Maker is a Django web application that generates images from text.
-The user can enter a short prompt in Type to Image or paste a longer scene in
-Script to Image. Script to Image first extracts useful visual details and builds
-a final prompt.
-
-The project stays fully offline because it loads a Stable Diffusion Diffusers
-model from a local folder using Django settings. The code uses
-`local_files_only=True`, so Diffusers is not allowed to download missing files.
-No OpenAI, Stability, Replicate, hosted Hugging Face inference, or cloud API is
-used.
-
-Before generation, the validation helper checks that the local model folder has
-the important Diffusers components: `model_index.json`, `unet`, `vae`,
-`tokenizer`, and `text_encoder`. The `check_local_model` management command lets
-the student test this setup from the terminal before running image generation.
+This command is fully offline and helps confirm setup before image generation.
 
 ## GitHub Notes
 
-Do not upload the local Stable Diffusion model, generated images, virtual
-environment, or SQLite database to GitHub. They are ignored by `.gitignore`:
+These files/folders should not be uploaded to GitHub:
 
 ```text
 local_models/
@@ -149,14 +210,21 @@ media/generated/
 db.sqlite3
 ```
 
-After cloning the project on another computer, run:
+They are already ignored in `.gitignore`.
 
-```powershell
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-python manage.py migrate
-python scripts/download_model.py
-python manage.py check_local_model
-python manage.py runserver
-```
+## Viva-Friendly Explanation
+
+Offline Image Maker is a Django project that converts user text into images.
+The frontend is made with Django templates, CSS, and JavaScript. The backend uses
+Django views, forms, services, SQLite, and local file storage.
+
+Type to Image sends a short prompt to the image generator. Script to Image first
+extracts scene details from a longer script, builds a final prompt, and sends it
+to the same generator.
+
+For real image generation, the app uses a local Diffusers Stable Diffusion model.
+No online API is used during generation. The model is downloaded once during
+setup, then the app runs offline.
+
+If CUDA GPU is available, the app uses GPU with `float16`. If not, it uses CPU
+with `float32`. CPU works but is slower.
