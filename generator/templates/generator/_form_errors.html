@@ -1,0 +1,6 @@
+{% if form.errors %}
+    <div class="form-errors">
+        <strong>Please fix the highlighted fields.</strong>
+        {{ form.non_field_errors }}
+    </div>
+{% endif %}

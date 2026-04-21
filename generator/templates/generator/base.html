@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Offline Image Maker{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'generator/styles.css' %}">
+</head>
+<body>
+    <header class="site-header">
+        <nav class="nav-shell">
+            <a href="{% url 'generator:home' %}" class="brand">Offline Image Maker</a>
+            <div class="nav-links">
+                <a href="{% url 'generator:type_to_image' %}">Type to Image</a>
+                <a href="{% url 'generator:script_to_image' %}">Script to Image</a>
+                <a href="{% url 'generator:history' %}">History</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="page-shell">
+        {% if messages %}
+            <div class="message-stack">
+                {% for message in messages %}
+                    <div class="message {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="{% static 'generator/app.js' %}"></script>
+</body>
+</html>

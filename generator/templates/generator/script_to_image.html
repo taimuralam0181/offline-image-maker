@@ -1,0 +1,67 @@
+{% extends "generator/base.html" %}
+
+{% block title %}Script to Image | Offline Image Maker{% endblock %}
+
+{% block content %}
+<section class="page-title">
+    <p class="eyebrow">Script to Image</p>
+    <h1>Extract a focused image prompt from a longer scene.</h1>
+</section>
+
+<div class="workspace-grid">
+    <section class="panel">
+        <form method="post" class="generation-form">
+            {% csrf_token %}
+            {% include "generator/_form_errors.html" %}
+
+            <label>
+                {{ form.script.label }}
+                {{ form.script }}
+                {{ form.script.errors }}
+            </label>
+
+            <div class="field-grid">
+                <label>{{ form.style.label }} {{ form.style }}</label>
+                <label>{{ form.width.label }} {{ form.width }}</label>
+                <label>{{ form.height.label }} {{ form.height }}</label>
+                <label>{{ form.inference_steps.label }} {{ form.inference_steps }}</label>
+                <label>{{ form.guidance_scale.label }} {{ form.guidance_scale }}</label>
+            </div>
+
+            <div class="button-row">
+                <button class="button button-secondary" type="submit" name="extract" value="1">
+                    Extract Prompt
+                </button>
+                <button class="button button-primary" type="submit" name="generate" value="1" data-loading-text="Generating locally...">
+                    Generate Image
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <aside class="panel prompt-preview">
+        <div class="section-heading">
+            <p class="eyebrow">Extract Prompt Preview</p>
+            <h2>Offline Parser Output</h2>
+        </div>
+        {% if extracted_parts %}
+            <dl class="parts-list">
+                {% for key, value in extracted_parts.items %}
+                    <div>
+                        <dt>{{ key|title }}</dt>
+                        <dd>{{ value }}</dd>
+                    </div>
+                {% endfor %}
+            </dl>
+            <div class="final-prompt">
+                <strong>Final prompt</strong>
+                <p>{{ final_prompt }}</p>
+            </div>
+        {% else %}
+            <p class="muted">Paste a script and click Extract Prompt to preview the generated prompt parts.</p>
+        {% endif %}
+    </aside>
+</div>
+
+{% include "generator/_image_result.html" %}
+{% endblock %}

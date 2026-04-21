@@ -1,0 +1,27 @@
+{% if generated_record %}
+    <section class="result-panel">
+        <div class="section-heading">
+            <p class="eyebrow">Result</p>
+            <h2>Generated Output</h2>
+        </div>
+        {% if generated_record.was_successful %}
+            <img class="result-image" src="{{ image_url }}" alt="Generated image">
+            <p class="debug-path">Image URL: {{ image_url }}</p>
+            <div class="button-row">
+                <a class="button button-secondary" href="{{ image_url }}" download>Download Image</a>
+                <a class="button button-secondary" href="{% url 'generator:history_detail' generated_record.pk %}">View Details</a>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <h3>Generation did not complete</h3>
+                <p>{{ generated_record.error_message }}</p>
+                <p class="muted">
+                    Check that <code>OFFLINE_IMAGE_MODEL_PATH</code> points to a local
+                    Diffusers model folder containing <code>model_index.json</code>,
+                    <code>unet</code>, <code>vae</code>, <code>tokenizer</code>, and
+                    <code>text_encoder</code>.
+                </p>
+            </div>
+        {% endif %}
+    </section>
+{% endif %}

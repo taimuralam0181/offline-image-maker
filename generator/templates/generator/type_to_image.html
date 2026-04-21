@@ -1,0 +1,58 @@
+{% extends "generator/base.html" %}
+
+{% block title %}Type to Image | Offline Image Maker{% endblock %}
+
+{% block content %}
+<section class="page-title">
+    <p class="eyebrow">Type to Image</p>
+    <h1>Turn a short prompt into a local generated image.</h1>
+</section>
+
+<div class="workspace-grid">
+    <section class="panel">
+        <form method="post" class="generation-form">
+            {% csrf_token %}
+            {% include "generator/_form_errors.html" %}
+
+            <label>
+                {{ form.prompt.label }}
+                {{ form.prompt }}
+                {{ form.prompt.errors }}
+            </label>
+
+            <div class="field-grid">
+                <label>{{ form.style.label }} {{ form.style }}</label>
+                <label>{{ form.width.label }} {{ form.width }}</label>
+                <label>{{ form.height.label }} {{ form.height }}</label>
+                <label>{{ form.inference_steps.label }} {{ form.inference_steps }}</label>
+                <label>{{ form.guidance_scale.label }} {{ form.guidance_scale }}</label>
+            </div>
+
+            <button class="button button-primary" type="submit" data-loading-text="Generating locally...">
+                Generate Image
+            </button>
+        </form>
+    </section>
+
+    {% include "generator/_image_result.html" %}
+</div>
+
+<section class="panel history-strip">
+    <div class="section-heading">
+        <p class="eyebrow">Prompt History</p>
+        <h2>Recent Type Prompts</h2>
+    </div>
+    {% if recent_history %}
+        <div class="prompt-list">
+            {% for item in recent_history %}
+                <a href="{% url 'generator:history_detail' item.pk %}">
+                    <span>{{ item.created_at|date:"M d, Y H:i" }}</span>
+                    <strong>{{ item.final_prompt|truncatechars:120 }}</strong>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="muted">No prompt history yet.</p>
+    {% endif %}
+</section>
+{% endblock %}

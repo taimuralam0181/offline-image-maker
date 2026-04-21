@@ -1,0 +1,39 @@
+{% extends "generator/base.html" %}
+
+{% block title %}Home | Offline Image Maker{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-copy">
+        <p class="eyebrow">Fully local Django image generation</p>
+        <h1>Create images from prompts and scripts without external APIs.</h1>
+        <p>
+            Choose a short prompt workflow or convert a longer scene description into
+            a structured image prompt before generating with a local Stable Diffusion model.
+        </p>
+    </div>
+    <div class="status-panel">
+        <span class="status-dot"></span>
+        <strong>Offline first</strong>
+        <p>Model files load from your machine through <code>OFFLINE_IMAGE_MODEL_PATH</code>.</p>
+    </div>
+</section>
+
+<section class="option-grid">
+    <a class="option-card" href="{% url 'generator:type_to_image' %}">
+        <span>01</span>
+        <h2>Type to Image</h2>
+        <p>Write a direct prompt, choose style and generation settings, then create an image locally.</p>
+    </a>
+    <a class="option-card" href="{% url 'generator:script_to_image' %}">
+        <span>02</span>
+        <h2>Script to Image</h2>
+        <p>Paste a scene script, extract visual parts, preview the final prompt, and generate.</p>
+    </a>
+    <a class="option-card" href="{% url 'generator:history' %}">
+        <span>03</span>
+        <h2>History</h2>
+        <p>Review previous inputs, prompts, generated images, and download files again.</p>
+    </a>
+</section>
+{% endblock %}

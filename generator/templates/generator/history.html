@@ -1,0 +1,40 @@
+{% extends "generator/base.html" %}
+
+{% block title %}History | Offline Image Maker{% endblock %}
+
+{% block content %}
+<section class="page-title">
+    <p class="eyebrow">History</p>
+    <h1>Previously generated local images.</h1>
+</section>
+
+{% if records %}
+    <section class="gallery-grid">
+        {% for record in records %}
+            <article class="history-card">
+                {% if record.was_successful %}
+                    <img src="{{ record.image.url }}" alt="Generated image">
+                {% else %}
+                    <div class="image-placeholder">No image</div>
+                {% endif %}
+                <div class="history-card-body">
+                    <span class="pill">{{ record.get_mode_display }}</span>
+                    <h2>{{ record.final_prompt|truncatechars:80 }}</h2>
+                    <p>{{ record.original_input|truncatechars:110 }}</p>
+                    <div class="button-row">
+                        <a class="button button-secondary" href="{% url 'generator:history_detail' record.pk %}">View</a>
+                        {% if record.was_successful %}
+                            <a class="button button-secondary" href="{{ record.image.url }}" download>Download</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+        {% endfor %}
+    </section>
+{% else %}
+    <section class="empty-state">
+        <h2>No history yet</h2>
+        <p>Generate your first image from the Type to Image or Script to Image page.</p>
+    </section>
+{% endif %}
+{% endblock %}

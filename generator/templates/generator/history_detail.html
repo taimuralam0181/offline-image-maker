@@ -1,0 +1,39 @@
+{% extends "generator/base.html" %}
+
+{% block title %}History Detail | Offline Image Maker{% endblock %}
+
+{% block content %}
+<section class="page-title">
+    <p class="eyebrow">{{ record.get_mode_display }}</p>
+    <h1>Generation details</h1>
+</section>
+
+<div class="detail-grid">
+    <section class="panel">
+        {% if record.was_successful %}
+            <img class="result-image" src="{{ record.image.url }}" alt="Generated image">
+            <a class="button button-primary" href="{{ record.image.url }}" download>Download Image</a>
+        {% else %}
+            <div class="empty-state">
+                <h2>Generation failed</h2>
+                <p>{{ record.error_message }}</p>
+            </div>
+        {% endif %}
+    </section>
+
+    <section class="panel detail-copy">
+        <h2>Original Input</h2>
+        <p>{{ record.original_input|linebreaksbr }}</p>
+        <h2>Final Prompt</h2>
+        <p>{{ record.final_prompt }}</p>
+        <h2>Settings</h2>
+        <ul class="settings-list">
+            <li>Style: {{ record.style }}</li>
+            <li>Size: {{ record.width }} x {{ record.height }}</li>
+            <li>Steps: {{ record.inference_steps }}</li>
+            <li>Guidance scale: {{ record.guidance_scale }}</li>
+            <li>Created: {{ record.created_at|date:"M d, Y H:i" }}</li>
+        </ul>
+    </section>
+</div>
+{% endblock %}

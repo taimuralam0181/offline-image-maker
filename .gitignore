@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+db.sqlite3
+media/generated/*
+!media/generated/.gitkeep
+.env
+venv/
+.venv/
+local_models/
+logs/
