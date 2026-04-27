@@ -1,15 +1,30 @@
 {% extends "generator/base.html" %}
 
-{% block title %}Script to Image | Offline Image Maker{% endblock %}
+{% block title %}Script to Image | AI Image Maker{% endblock %}
 
 {% block content %}
 <section class="page-title">
     <p class="eyebrow">Script to Image</p>
-    <h1>Extract a focused image prompt from a longer scene.</h1>
+    <h1>Paste a script and generate an image in one step.</h1>
 </section>
 
 <div class="workspace-grid">
     <section class="panel">
+        <div class="section-heading">
+            <p class="eyebrow">How It Works</p>
+            <h2>Paste Scene and Generate</h2>
+        </div>
+        <div class="info-stack">
+            <div class="info-card">
+                <strong>Step 1</strong>
+                <p>Paste a scene, story paragraph, or shot description into the script box.</p>
+            </div>
+            <div class="info-card">
+                <strong>Step 2</strong>
+                <p>Click <span class="inline-badge">Generate Image</span>. The system will automatically extract the prompt and create the image.</p>
+            </div>
+        </div>
+
         <form method="post" class="generation-form">
             {% csrf_token %}
             {% include "generator/_form_errors.html" %}
@@ -20,6 +35,11 @@
                 {{ form.script.errors }}
             </label>
 
+            <div class="example-box">
+                <strong>Example script</strong>
+                <p>At sunrise, a young explorer walks through an ancient forest with peaceful mood, soft mist, and golden light filtering through the trees.</p>
+            </div>
+
             <div class="field-grid">
                 <label>{{ form.style.label }} {{ form.style }}</label>
                 <label>{{ form.width.label }} {{ form.width }}</label>
@@ -29,39 +49,57 @@
             </div>
 
             <div class="button-row">
-                <button class="button button-secondary" type="submit" name="extract" value="1">
-                    Extract Prompt
-                </button>
                 <button class="button button-primary" type="submit" name="generate" value="1" data-loading-text="Generating locally...">
                     Generate Image
                 </button>
             </div>
+
+            <p class="muted compact-note">
+                Real Stable Diffusion generation can take longer on CPU. If you are using a GPU, generation will be faster.
+            </p>
         </form>
     </section>
 
-    <aside class="panel prompt-preview">
-        <div class="section-heading">
-            <p class="eyebrow">Extract Prompt Preview</p>
-            <h2>Offline Parser Output</h2>
-        </div>
+    <div class="side-stack">
         {% if extracted_parts %}
-            <dl class="parts-list">
-                {% for key, value in extracted_parts.items %}
-                    <div>
-                        <dt>{{ key|title }}</dt>
-                        <dd>{{ value }}</dd>
-                    </div>
-                {% endfor %}
-            </dl>
-            <div class="final-prompt">
-                <strong>Final prompt</strong>
-                <p>{{ final_prompt }}</p>
+        <aside class="panel prompt-preview">
+            <div class="section-heading">
+                <p class="eyebrow">Extract Prompt Preview</p>
+                <h2>Offline Parser Output</h2>
             </div>
-        {% else %}
-            <p class="muted">Paste a script and click Extract Prompt to preview the generated prompt parts.</p>
+                <dl class="parts-list">
+                    {% for key, value in extracted_parts.items %}
+                        <div>
+                            <dt>{{ key|title }}</dt>
+                            <dd>{{ value }}</dd>
+                        </div>
+                    {% endfor %}
+                </dl>
+                <div class="final-prompt">
+                    <strong>Final prompt sent to the image generator</strong>
+                    <p>{{ final_prompt }}</p>
+                </div>
+        </aside>
         {% endif %}
-    </aside>
-</div>
 
-{% include "generator/_image_result.html" %}
+        <div id="script-generation-status" class="panel progress-panel" hidden>
+            <div class="section-heading">
+                <p class="eyebrow">Generating</p>
+                <h2>Image Generation In Progress</h2>
+            </div>
+            <div class="progress-meta">
+                <strong id="script-progress-percent">0%</strong>
+                <span class="muted">Estimated progress while the server is generating the image</span>
+            </div>
+            <div class="progress-track" aria-hidden="true">
+                <div id="script-progress-bar" class="progress-fill"></div>
+            </div>
+            <p class="muted">
+                Your script is being converted into an image. CPU mode can take a few minutes, so keep this page open until the result appears.
+            </p>
+        </div>
+
+        {% include "generator/_image_result.html" %}
+    </div>
+</div>
 {% endblock %}

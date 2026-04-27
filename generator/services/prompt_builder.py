@@ -14,7 +14,18 @@ def build_type_prompt(user_prompt, style):
 
 def build_script_prompt(parts):
     """Create a final optimized prompt from parsed script parts."""
-    return (
-        f"{parts['subject']}, {parts['action']}, background: {parts['background']}, "
-        f"{parts['mood']} mood, {parts['lighting']}, {parts['style']}, {QUALITY_PHRASE}"
-    )
+    segments = [
+        parts["subject"],
+        parts["action"],
+        f"background: {parts['background']}",
+        f"{parts['mood']} mood",
+        parts["lighting"],
+        parts["style"],
+        QUALITY_PHRASE,
+    ]
+    cleaned_segments = []
+    for segment in segments:
+        segment = str(segment).strip(" ,")
+        if segment and segment not in cleaned_segments:
+            cleaned_segments.append(segment)
+    return ", ".join(cleaned_segments)

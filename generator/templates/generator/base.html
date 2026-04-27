@@ -4,13 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Offline Image Maker{% endblock %}</title>
+    <title>{% block title %}AI Image Maker{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'generator/styles.css' %}">
 </head>
 <body>
     <header class="site-header">
         <nav class="nav-shell">
-            <a href="{% url 'generator:home' %}" class="brand">Offline Image Maker</a>
+            <a href="{% url 'generator:home' %}" class="brand">AI Image Maker</a>
             <div class="nav-links">
                 <a href="{% url 'generator:type_to_image' %}">Type to Image</a>
                 <a href="{% url 'generator:script_to_image' %}">Script to Image</a>

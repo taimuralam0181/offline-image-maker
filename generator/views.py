@@ -74,7 +74,7 @@ def type_to_image_view(request):
 
 
 def script_to_image_view(request):
-    """Parse a script offline and optionally generate an image from it."""
+    """Parse a script offline and generate an image in one step."""
     form = ScriptToImageForm(request.POST or None)
     extracted_parts = None
     final_prompt = ""
@@ -89,38 +89,37 @@ def script_to_image_view(request):
         print(f"[DEBUG] Extracted script parts: {extracted_parts}")
         print(f"[DEBUG] Final script prompt: {final_prompt}")
 
-        if "generate" in request.POST:
-            image_path = ""
-            error_message = ""
-            try:
-                image_path = generate_image(
-                    prompt=final_prompt,
-                    width=data["width"],
-                    height=data["height"],
-                    steps=data["inference_steps"],
-                    guidance_scale=data["guidance_scale"],
-                )
-                print(f"[DEBUG] generate_image() returned image_path: {image_path}")
-                messages.success(request, "Script image generated locally and saved.")
-            except ImageGenerationError as exc:
-                error_message = str(exc)
-                print(f"[DEBUG] Image generation failed: {error_message}")
-                messages.error(request, error_message)
-
-            generated_record = create_history_record(
-                original_input=data["script"],
-                final_prompt=final_prompt,
-                mode=ImageGeneration.MODE_SCRIPT,
-                style=data["style"],
+        image_path = ""
+        error_message = ""
+        try:
+            image_path = generate_image(
+                prompt=final_prompt,
                 width=data["width"],
                 height=data["height"],
-                inference_steps=data["inference_steps"],
+                steps=data["inference_steps"],
                 guidance_scale=data["guidance_scale"],
-                image_path=image_path,
-                error_message=error_message,
             )
-            if generated_record.was_successful:
-                image_url = generated_record.image.url
+            print(f"[DEBUG] generate_image() returned image_path: {image_path}")
+            messages.success(request, "Script image generated locally and saved.")
+        except ImageGenerationError as exc:
+            error_message = str(exc)
+            print(f"[DEBUG] Image generation failed: {error_message}")
+            messages.error(request, error_message)
+
+        generated_record = create_history_record(
+            original_input=data["script"],
+            final_prompt=final_prompt,
+            mode=ImageGeneration.MODE_SCRIPT,
+            style=data["style"],
+            width=data["width"],
+            height=data["height"],
+            inference_steps=data["inference_steps"],
+            guidance_scale=data["guidance_scale"],
+            image_path=image_path,
+            error_message=error_message,
+        )
+        if generated_record.was_successful:
+            image_url = generated_record.image.url
 
     context = {
         "form": form,
